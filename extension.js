@@ -7,24 +7,57 @@ const vscode = require('vscode');
 
 /**
  * @param {vscode.ExtensionContext} context
+ 
  */
+
+let terminal;
 function activate(context) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "smart-error-message-translator" is now active!');
+	let disposable = vscode.commands.registerCommand('extension.runCodeSmart', async function () {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage("No active file.");
+            return;
+        }
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('smart-error-message-translator.helloWorld', function () {
-		// The code you place here will be executed every time your command is executed
+        const filePath = editor.document.fileName;
+        const fileExt = filePath.split('.').pop();
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Smart Error Message Translator!');
-	});
+        let runCommand = "";
 
-	context.subscriptions.push(disposable);
+        switch (fileExt) {
+            case "cpp":
+                const outputBinary = filePath.replace(/\.cpp$/, '');
+                runCommand = `g++ "${filePath}" -o "${outputBinary}" && "${outputBinary}"`;
+                break;
+            case "js":
+                runCommand = `node "${filePath}"`;
+                break;
+            case "py":
+                runCommand = `python "${filePath}"`;
+                break;
+            case "ts":
+                runCommand = `ts-node "${filePath}"`;
+                break;
+            case "java":
+                const className = filePath.replace(/^.*[\\/]/, '').replace('.java', '');
+                runCommand = `javac "${filePath}" && java "${className}"`;
+                break;
+            default:
+                vscode.window.showErrorMessage(`Unsupported file type: .${fileExt}`);
+                return;
+        }
+
+        if (!terminal || terminal.exitStatus) {
+            terminal = vscode.window.createTerminal("SmartRun Terminal");
+        }
+
+        terminal.show();
+        terminal.sendText(runCommand);
+    });
+
+    context.subscriptions.push(disposable);
+	console.log("hi");
 }
 
 // This method is called when your extension is deactivated

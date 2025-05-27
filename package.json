@@ -9,14 +9,15 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": ["onCommand:extension.runCodeSmart"],
   "main": "./extension.js",
   "contributes": {
     "commands": [{
-      "command": "smart-error-message-translator.helloWorld",
-      "title": "Hello World"
+      "command": "extension.runCodeSmart",
+      "title": "Smart Run Code"
     }]
   },
+  
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
