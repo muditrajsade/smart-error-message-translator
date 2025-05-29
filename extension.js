@@ -47,7 +47,7 @@ function activate(context) {
         outputChannel.appendLine(`> ${runCommand}`);
         outputChannel.show(true);
 
-        exec(runCommand, { cwd: vscode.workspace.rootPath }, (error, stdout, stderr) => {
+        exec(runCommand, { cwd: vscode.workspace.rootPath }, async (error, stdout, stderr) => {
             const combinedOutput = (stdout + stderr).trim();
             outputChannel.appendLine(combinedOutput || "(No output)");
 
@@ -56,39 +56,23 @@ function activate(context) {
                 console.log("Captured stderr error message:\n", errorMessage);
                 console.log("Source code that caused the error:\n", code); // ✅ Log the source code
 
-                const payload = {
-        model: "gpt-4",
-        messages: [
-            {
-                role: "system",
-                content: "You are a helpful programming assistant that debugs code."
-            },
-            {
-                role: "user",
-                content: `Here is a piece of code:\n\n${code}\n\nIt produces the following error:\n\n${errorMessage}\n\nPlease explain the error and suggest a fix.`
-            }
-        ]
-    };
+                let r = await fetch('http://localhost:8000/analyze-error', {
+                                     method: 'POST',
+                                        headers: {
+                                                'Content-Type': 'application/json',
+                                        },
+                                    body: JSON.stringify({
+                                         errorMessage: errorMessage,
+                                            code: code
+                                    })
+                                });
 
-    try {
-        const response = await axios.post(
-            'https://api.openai.com/v1/chat/completions',
-            payload,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer YOUR_OPENAI_API_KEY`
-                }
-            }
-        );
+                let k = await r.json();
+                console.log(k);
 
-        const aiResponse = response.data.choices[0].message.content;
-        vscode.window.showInformationMessage("AI Suggestion: " + aiResponse);
-        outputChannel.appendLine("\n--- AI Suggestion ---\n" + aiResponse);
-    } catch (err) {
-        console.error("Failed to call OpenAI API:", err.message);
-        vscode.window.showErrorMessage("Failed to get AI suggestion.");
-    }
+
+
+                
             }
         });
     });
