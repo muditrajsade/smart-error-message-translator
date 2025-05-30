@@ -70,6 +70,9 @@ function activate(context) {
                 let k = await r.json();
                 console.log(k);
 
+                outputChannel.appendLine('\nAI Error Analysis:');
+                outputChannel.appendLine(JSON.stringify(k, null, 2));
+
 
 
                 
