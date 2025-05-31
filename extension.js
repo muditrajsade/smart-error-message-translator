@@ -51,10 +51,17 @@ function activate(context) {
             const combinedOutput = (stdout + stderr).trim();
             outputChannel.appendLine(combinedOutput || "(No output)");
 
+            const outputLines = [];
+            outputLines.push(`> ${runCommand}`);
+            outputLines.push(combinedOutput || "(No output)");
+
             if (stderr.trim()) {
                 const errorMessage = stderr.trim(); // ✅ Store the error
                 console.log("Captured stderr error message:\n", errorMessage);
                 console.log("Source code that caused the error:\n", code); // ✅ Log the source code
+
+                outputChannel.appendLine("⏳ Fetching AI analysis...");
+
 
                 let r = await fetch('http://localhost:8000/analyze-error', {
                                      method: 'POST',
@@ -70,8 +77,36 @@ function activate(context) {
                 let k = await r.json();
                 console.log(k);
 
-                outputChannel.appendLine('\nAI Error Analysis:');
-                outputChannel.appendLine(JSON.stringify(k, null, 2));
+                
+               outputChannel.clear();
+            for (const line of outputLines) {
+                outputChannel.appendLine(line);
+            }
+
+// Clear the spinner line manually by overwriting it with spaces
+
+                outputChannel.appendLine('\n────────────── AI Error Analysis ──────────────');
+
+// Display the main explanation with proper line breaks
+
+
+// Append the AI's explanation and suggestions
+outputChannel.appendLine(k.fullResponse);
+
+// Append extracted links (if any), one per line
+/*if (k.extractedLinks && k.extractedLinks.length > 0) {
+    outputChannel.appendLine('\nRelevant Web Links:\n');
+    k.extractedLinks.forEach((link, index) => {
+        outputChannel.appendLine(`LINK ${index + 1}: ${link}`);
+    });
+}*/
+
+
+outputChannel.appendLine('───────────────────────────────────────────────\n');
+
+
+                
+
 
 
 
